@@ -1,4 +1,4 @@
-// File: app/page.tsx (or page.jsx if not using TypeScript)
+// File: app/page.tsx
 'use client';
 
 import { useSession, signIn } from "next-auth/react";
@@ -43,9 +43,14 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            
+            <div className="w-16 h-16 mb-4">
+              <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                <circle fill="#FF4500" cx="10" cy="10" r="10"></circle>
+                <path fill="#FFF" d="M16.67,10A1.46,1.46,0,0,0,14.2,9a7.12,7.12,0,0,0-3.85-1.23L11,4.65,13.14,5.1a1,1,0,1,0,.13-0.61L10.82,4a0.31,0.31,0,0,0-.37.24L9.71,7.71a7.14,7.14,0,0,0-3.9,1.23A1.46,1.46,0,1,0,4.2,11.33a2.87,2.87,0,0,0,0,.44c0,2.24,2.61,4.06,5.83,4.06s5.83-1.82,5.83-4.06a2.87,2.87,0,0,0,0-.44A1.46,1.46,0,0,0,16.67,10Z"></path>
+              </svg>
+            </div>
             <p className="text-center text-sm text-gray-600 mb-4">
-              No registration needed. One click to connect and you're ready to go.
+              No registration needed. One click to connect and you&apos;re ready to go.
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
@@ -56,7 +61,7 @@ export default function HomePage() {
               Login with Reddit
             </Button>
           </CardFooter>
-          <BorderBeam duration={8} size={150} />
+          <BorderBeam duration={8} size={100} />
         </Card>
       ) : (
         <p>Redirecting to your profile...</p>

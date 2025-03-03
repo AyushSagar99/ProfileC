@@ -1,9 +1,10 @@
-// File: app/profile/page.tsx (or page.jsx if not using TypeScript)
+// File: app/profile/page.tsx
 'use client';
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -41,11 +42,15 @@ export default function ProfilePage() {
           
           {session.user?.image && (
             <div className="flex justify-center my-4">
-              <img 
-                src={session.user.image} 
-                alt="Profile" 
-                className="h-20 w-20 rounded-full"
-              />
+              <div className="relative h-20 w-20 rounded-full overflow-hidden">
+                <Image 
+                  src={session.user.image}
+                  alt="Profile"
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              </div>
             </div>
           )}
           
