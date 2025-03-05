@@ -1,7 +1,30 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+// File: next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'styles.redditmedia.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.redditstatic.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.redd.it',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.reddit.com',
+        pathname: '**',
+      },
+    ],
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
