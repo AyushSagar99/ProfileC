@@ -33,6 +33,19 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
+  // State for most visited subreddits
+  const [subreddits, setSubreddits] = useState<any[]>([]);
+  const [loadingSubreddits, setLoadingSubreddits] = useState(false);
+  const [subredditError, setSubredditError] = useState("");
+  
+  // Helper function to decode HTML entities in URLs
+  const decodeHtmlEntities = (html: string | undefined) => {
+    if (!html) return '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = html;
+    return textArea.value;
+  };
+  
   // Redirect to home if not logged in
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -56,6 +69,8 @@ export default function ProfilePage() {
         return response.json();
       })
       .then(data => {
+        console.log("Reddit API response:", data);
+        console.log("Icon image URL:", data.subreddit?.icon_img);
         setRedditData(data);
         setLoading(false);
       })
@@ -66,6 +81,41 @@ export default function ProfilePage() {
       });
     }
   }, [session]);
+  
+  // Fetch user's history to determine most visited subreddits using our server API route
+  // Fix for the useEffect dependency array issue
+// Change this part in your profile page:
+
+// Fetch user's history to determine most visited subreddits using our server API route
+useEffect(() => {
+  if (!redditData) return;
+  
+  setLoadingSubreddits(true);
+  
+  // Use alternative API route for subscribed subreddits
+  fetch('/api/reddit/subscribed')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.data && data.data.children) {
+        const subredditList = data.data.children
+          .map((child: any) => child.data)
+          .sort((a: any, b: any) => b.subscribers - a.subscribers); // Sort by popularity
+        
+        setSubreddits(subredditList.slice(0, 5)); // Top 5 most popular
+      }
+      setLoadingSubreddits(false);
+    })
+    .catch(err => {
+      console.error("Error fetching subreddits:", err);
+      setSubredditError("Failed to load subreddit data");
+      setLoadingSubreddits(false);
+    });
+}, [redditData]);
   
   // Format Unix timestamp to readable date
   const formatDate = (timestamp: number) => {
@@ -104,7 +154,7 @@ export default function ProfilePage() {
               <div className="relative h-20 w-20 rounded-full overflow-hidden bg-gray-200">
                 {redditData.subreddit?.icon_img ? (
                   <Image 
-                    src={redditData.subreddit.icon_img}
+                    src={decodeHtmlEntities(redditData.subreddit.icon_img)}
                     alt="Profile"
                     fill
                     sizes="80px"
@@ -166,6 +216,57 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
+            
+            {/* Subscribed Subreddits Section */}
+<div className="mt-6">
+  <h2 className="text-lg font-semibold mb-3">Your Subreddits</h2>
+  
+  {loadingSubreddits ? (
+    <div className="text-center py-4">
+      <p className="text-gray-500">Loading your subreddits...</p>
+    </div>
+  ) : subredditError ? (
+    <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm">
+      {subredditError}
+    </div>
+  ) : subreddits.length > 0 ? (
+    <div className="space-y-2">
+      {subreddits.map(sub => (
+        <div key={sub.display_name} className="flex items-center p-2 bg-gray-50 rounded-md hover:bg-gray-100">
+          <div 
+            className="w-8 h-8 rounded-full mr-3 flex items-center justify-center"
+            style={{ 
+              backgroundColor: sub.primary_color || '#FF4500',
+              overflow: 'hidden'
+            }}
+          >
+            {sub.icon_img ? (
+              <img 
+                src={decodeHtmlEntities(sub.icon_img)} 
+                alt={sub.display_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white text-xs font-bold">
+                {sub.display_name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-medium">r/{sub.display_name}</p>
+            <p className="text-xs text-gray-500">
+              {sub.subscribers.toLocaleString()} members
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500 text-center py-4">
+      No subreddit data available
+    </p>
+  )}
+</div>
           </div>
         ) : (
           <div className="space-y-4">

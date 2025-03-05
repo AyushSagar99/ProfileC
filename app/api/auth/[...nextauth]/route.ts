@@ -10,8 +10,8 @@ const handler = NextAuth({
       clientSecret: process.env.REDDIT_CLIENT_SECRET || "",
       authorization: {
         params: {
-          // Request identity scope to access user data
-          scope: "identity"
+          // Request identity, mysubreddits and history scopes
+          scope: "identity mysubreddits history"
         }
       }
     }),
