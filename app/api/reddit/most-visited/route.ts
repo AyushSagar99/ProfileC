@@ -1,12 +1,12 @@
-// File: app/api/reddit/subscribed/route.ts
-// Enhanced version that adds simulated visit counts to subscribed subreddits
+// File: app/api/reddit/visited/route.ts
+// Simplified API route that directly uses subscribed subreddits with simulated visit counts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
-    console.log("Reddit subscribed API route called");
+    console.log("Simplified Reddit subreddits API route called");
     
     // Get the session token from the request
     const token = await getToken({ 
@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Forward the request to Reddit's API for subscribed subreddits
-    console.log("Fetching subscribed subreddits from Reddit API");
+    // Directly use subscribed subreddits as our data source
+    console.log("Fetching subscribed subreddits");
     const response = await fetch('https://oauth.reddit.com/subreddits/mine/subscriber?limit=25', {
       headers: {
         'Authorization': `Bearer ${token.accessToken}`,
@@ -44,24 +44,30 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Process the data
     const data = await response.json();
     
-    // Enhanced: Add simulated visit counts for each subreddit
-    if (data.data && data.data.children) {
-      data.data.children.forEach((item: { data: { visit_count: number; }; }) => {
-        if (item.data) {
-          // Generate random visit count between 5 and 30 for demonstration
-          item.data.visit_count = Math.floor(Math.random() * 26) + 5;
-        }
-      });
-      
-      // Sort by the simulated visit count (highest first)
-      data.data.children.sort((a: { data: { visit_count: number; }; }, b: { data: { visit_count: number; }; }) => 
-        b.data.visit_count - a.data.visit_count
+    if (!data.data || !data.data.children) {
+      return NextResponse.json(
+        { error: 'Invalid Reddit API response format' },
+        { status: 500 }
       );
     }
     
-    console.log("Successfully received and enhanced subscribed subreddits data");
+    // Add simulated visit counts to the subreddits
+    data.data.children.forEach((item: any) => {
+      if (item.data) {
+        // Generate random visit count between 5 and 30 for demonstration
+        item.data.visit_count = Math.floor(Math.random() * 26) + 5;
+      }
+    });
+    
+    // Sort by the simulated visit count
+    data.data.children.sort((a: any, b: any) => 
+      b.data.visit_count - a.data.visit_count
+    );
+    
+    console.log(`Successfully processed ${data.data.children.length} subreddits with simulated visit counts`);
     
     return NextResponse.json({
       data: data.data,
@@ -69,9 +75,9 @@ export async function GET(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error in Reddit subscribed API route:', error);
+    console.error('Error in simplified Reddit API route:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch subscribed subreddits', details: error instanceof Error ? error.message : String(error) },
+      { error: 'Failed to process subreddits', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
