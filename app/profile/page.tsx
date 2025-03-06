@@ -5,6 +5,9 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import TrendingSubreddits from "@/components/TrendingSubreddits";
+import UserTrophies from "@/components/UserTrophies";
+
 
 // Define the Reddit user data type
 interface RedditUserData {
@@ -26,6 +29,19 @@ interface RedditUserData {
   };
 }
 
+// Define the subreddit data type
+interface SubredditData {
+  display_name: string;
+  subscribers: number;
+  public_description?: string;
+  icon_img?: string;
+  primary_color?: string;
+  banner_img?: string;
+  growth_percentage?: number;
+  trending_rank?: number;
+  recommended_because?: string;
+}
+
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -33,11 +49,20 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // State for subreddits
+  // State for subscribed subreddits
   const [subreddits, setSubreddits] = useState<any[]>([]);
   const [loadingSubreddits, setLoadingSubreddits] = useState(false);
   const [subredditError, setSubredditError] = useState("");
   
+  // State for trending subreddits
+  const [trendingSubreddits, setTrendingSubreddits] = useState<SubredditData[]>([]);
+  const [recommendedSubreddits, setRecommendedSubreddits] = useState<SubredditData[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(false);
+  const [trendingError, setTrendingError] = useState<string | null>(null);
+  
+  const [trophies, setTrophies] = useState<any[]>([]);
+  const [loadingTrophies, setLoadingTrophies] = useState(false);
+  const [trophyError, setTrophyError] = useState<string | null>(null);
   // Helper function to decode HTML entities in URLs
   const decodeHtmlEntities = (html: string | undefined) => {
     if (!html) return '';
@@ -113,6 +138,83 @@ export default function ProfilePage() {
       });
   }, [redditData]);
   
+  // Fetch trending subreddits
+  useEffect(() => {
+    if (!redditData) return;
+    
+    setLoadingTrending(true);
+    
+    // Use the trending API endpoint
+    fetch('/api/reddit/trending')
+      .then(response => {
+        // Don't throw an error on non-200 response
+        // Instead, process the response and handle errors in the component
+        return response.json().catch(() => {
+          // Return an empty object if JSON parsing fails
+          return {};
+        });
+      })
+      .then(data => {
+        if (data.error) {
+          console.warn("Trending API returned an error:", data.error);
+          // Don't set error state - just use empty arrays
+          setTrendingSubreddits([]);
+          setRecommendedSubreddits([]);
+        } else {
+          setTrendingSubreddits(data.trending || []);
+          setRecommendedSubreddits(data.recommended || []);
+        }
+        setLoadingTrending(false);
+      })
+      .catch(err => {
+        console.error("Error fetching trending subreddits:", err);
+        // Don't set error state - just use empty arrays
+        setTrendingSubreddits([]);
+        setRecommendedSubreddits([]);
+        setLoadingTrending(false);
+      });
+  }, [redditData]);
+
+// Update your profile page with this improved trophy loading code
+// This version doesn't show errors to the user
+
+// Update the useEffect for trophies
+useEffect(() => {
+  if (!redditData) return;
+  
+  setLoadingTrophies(true);
+  
+  // Use the trophies API endpoint
+  fetch('/api/reddit/trophies')
+    .then(response => {
+      // Don't throw an error, handle it gracefully
+      return response.json().catch(() => {
+        return { error: 'Failed to parse response' };
+      });
+    })
+    .then(data => {
+      if (data.error) {
+        console.warn("Trophies API returned an error:", data.error);
+        setTrophies([]);
+        
+        // Don't set an error message - this prevents showing the error to the user
+        setTrophyError(null);
+      } else {
+        setTrophies(data.trophies || []);
+        setTrophyError(null);
+      }
+      setLoadingTrophies(false);
+    })
+    .catch(err => {
+      console.error("Error fetching trophies:", err);
+      setTrophies([]);
+      
+      // Don't set an error message
+      setTrophyError(null);
+      setLoadingTrophies(false);
+    });
+}, [redditData]);
+  
   // Format Unix timestamp to readable date
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString('en-US', {
@@ -177,7 +279,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-
+      <UserTrophies 
+  trophies={trophies}
+  isLoading={loadingTrophies}
+  error={trophyError}
+  username={redditData?.name || ''}
+/>
       {/* Main Dashboard Container */}
       <div className="container mx-auto px-4 py-8">
         {error ? (
@@ -345,7 +452,15 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Subreddits Section - Full Width */}
+            {/* Trending Subreddits Section */}
+            <TrendingSubreddits 
+              trending={trendingSubreddits}
+              recommended={recommendedSubreddits}
+              isLoading={loadingTrending}
+              error={trendingError}
+            />
+
+            {/* Your Subreddits Section - Full Width */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
               <div className="px-6 py-5 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-gray-800">Your Subreddits</h2>
@@ -379,7 +494,7 @@ export default function ProfilePage() {
                           >
                             {sub.icon_img ? (
                               <img 
-                                src={decodeHtmlEntities(sub.icon_img)} 
+                                src={decodeHtmlEntities(sub.icon_img)}
                                 alt={sub.display_name}
                                 className="w-full h-full object-cover"
                               />
@@ -446,7 +561,7 @@ export default function ProfilePage() {
                                 >
                                   {sub.icon_img ? (
                                     <img 
-                                      src={decodeHtmlEntities(sub.icon_img)} 
+                                      src={decodeHtmlEntities(sub.icon_img)}
                                       alt={sub.display_name}
                                       className="w-full h-full object-cover"
                                     />
