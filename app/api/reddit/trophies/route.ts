@@ -1,13 +1,8 @@
 // File: app/api/reddit/trophies/route.ts
-// Enhanced API route that fetches user's Reddit trophies with proper TypeScript types
+// Simplified API route that only fetches user's Reddit trophies
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-
-// Define the interface for trophy details
-interface TrophyDescriptions {
-  [key: string]: string;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -72,48 +67,43 @@ export async function GET(req: NextRequest) {
     const trophiesData = await trophiesResponse.json();
     console.log("Successfully fetched user trophies from public API");
     
-    // Also fetch additional trophy information from the Reddit about page
-    // This provides details about trophy types, even ones the user doesn't have
-    try {
-      const trophyTypesResponse = await fetch('https://www.reddit.com/wiki/trophies.json', {
-        headers: {
-          'User-Agent': 'web:RedditProfileApp:v1.0.0'
+    // Add static descriptions for common trophies
+    if (trophiesData.data?.trophies) {
+      const trophyDescriptions: { [key: string]: string } = {
+        'verified email': 'User has a verified email address associated with their Reddit account',
+        'one-year club': 'User has been a registered member of Reddit for 1 year',
+        'two-year club': 'User has been a registered member of Reddit for 2 years',
+        'three-year club': 'User has been a registered member of Reddit for 3 years',
+        'four-year club': 'User has been a registered member of Reddit for 4 years',
+        'five-year club': 'User has been a registered member of Reddit for 5 years',
+        'six-year club': 'User has been a registered member of Reddit for 6 years',
+        'seven-year club': 'User has been a registered member of Reddit for 7 years',
+        'eight-year club': 'User has been a registered member of Reddit for 8 years',
+        'nine-year club': 'User has been a registered member of Reddit for 9 years',
+        'ten-year club': 'User has been a registered member of Reddit for 10 years',
+        'eleven-year club': 'User has been a registered member of Reddit for 11 years',
+        'twelve-year club': 'User has been a registered member of Reddit for 12 years',
+        'gilding i': 'User has given gold to others on 1 or more occasions',
+        'gilding ii': 'User has given gold to others on 3 or more occasions',
+        'gilding iii': 'User has given gold to others on 10 or more occasions',
+        'gilding iv': 'User has given gold to others on 20 or more occasions',
+        'gilding v': 'User has given gold to others on 50 or more occasions',
+        'gilding vi': 'User has given gold to others on 100 or more occasions',
+        'gilding vii': 'User has given gold to others on 250 or more occasions',
+        'gilding viii': 'User has given gold to others on 500 or more occasions',
+        'gilding ix': 'User has given gold to others on 1000 or more occasions',
+        'reddit gold': 'User has Reddit Premium membership',
+        'reddit platinum': 'User has been awarded Reddit Platinum',
+        'moderator': 'User is a moderator of one or more subreddits',
+        'beta team': 'User participated in Reddit beta testing'
+      };
+      
+      trophiesData.data.trophies.forEach((trophy: any) => {
+        const trophyName = trophy.data?.name?.toLowerCase();
+        if (trophyName && trophyDescriptions[trophyName]) {
+          trophy.data.detailed_description = trophyDescriptions[trophyName];
         }
       });
-      
-      if (trophyTypesResponse.ok) {
-        const trophyTypesData = await trophyTypesResponse.json();
-        
-        // Extract trophy descriptions from wiki content if available
-        let trophyDetails: TrophyDescriptions = {};
-        if (trophyTypesData.data?.content_md) {
-          const wikiContent = trophyTypesData.data.content_md;
-          
-          // Parse the wiki content to find trophy descriptions
-          // Note: This is a simplified parsing logic
-          const trophyRegex = /\*\*([^*]+)\*\*\s*-\s*([^\n]+)/g;
-          let match;
-          
-          while ((match = trophyRegex.exec(wikiContent)) !== null) {
-            const trophyName = match[1].trim();
-            const trophyDescription = match[2].trim();
-            trophyDetails[trophyName.toLowerCase()] = trophyDescription;
-          }
-        }
-        
-        // Add detailed descriptions to the trophies when available
-        if (trophiesData.data?.trophies && Object.keys(trophyDetails).length > 0) {
-          trophiesData.data.trophies.forEach((trophy: any) => {
-            const trophyName = trophy.data?.name?.toLowerCase();
-            if (trophyName && trophyDetails[trophyName]) {
-              trophy.data.detailed_description = trophyDetails[trophyName];
-            }
-          });
-        }
-      }
-    } catch (wikiError) {
-      console.warn("Could not fetch additional trophy details:", wikiError);
-      // Continue without additional details
     }
     
     return NextResponse.json({ 
