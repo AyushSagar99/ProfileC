@@ -33,11 +33,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // State for most visited subreddits
+  // State for subreddits
   const [subreddits, setSubreddits] = useState<any[]>([]);
   const [loadingSubreddits, setLoadingSubreddits] = useState(false);
   const [subredditError, setSubredditError] = useState("");
-  const [subredditSource, setSubredditSource] = useState<'history' | 'subscribed' | 'simulated' | null>(null);
   
   // Helper function to decode HTML entities in URLs
   const decodeHtmlEntities = (html: string | undefined) => {
@@ -83,13 +82,13 @@ export default function ProfilePage() {
     }
   }, [session]);
   
-  // Fetch user's most visited subreddits
+  // Fetch user's subreddits
   useEffect(() => {
     if (!redditData) return;
     
     setLoadingSubreddits(true);
     
-    // Use the existing subscribed API route which now has simulated visit counts
+    // Use the subscribed subreddits endpoint
     fetch('/api/reddit/subscribed')
       .then(response => {
         if (!response.ok) {
@@ -100,12 +99,10 @@ export default function ProfilePage() {
       .then(data => {
         if (data.data && data.data.children) {
           const subredditList = data.data.children
-            .map((child: any) => child.data);
+            .map((child: any) => child.data)
+            .sort((a: any, b: any) => b.subscribers - a.subscribers); // Sort by popularity
           
           setSubreddits(subredditList);
-          
-          // Track the source of this data
-          setSubredditSource(data.source || null);
         }
         setLoadingSubreddits(false);
       })
@@ -348,26 +345,16 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Most Visited Subreddits Section - Full Width */}
+            {/* Subreddits Section - Full Width */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-              <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Your Most Visited Subreddits</h2>
-                {subredditSource === 'subscribed' && (
-                  <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-lg">
-                    * Estimated visits based on subscriptions
-                  </span>
-                )}
-                {subredditSource === 'simulated' && (
-                  <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-lg">
-                    * Demonstration with simulated visit data
-                  </span>
-                )}
+              <div className="px-6 py-5 border-b border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-800">Your Subreddits</h2>
               </div>
               <div className="p-6">
                 {loadingSubreddits ? (
                   <div className="text-center py-8">
                     <div className="h-8 w-8 rounded-full border-4 border-t-purple-500 border-r-transparent border-b-transparent border-l-transparent animate-spin mb-3 mx-auto"></div>
-                    <p className="text-gray-500">Analyzing your Reddit activity...</p>
+                    <p className="text-gray-500">Loading your subreddits...</p>
                   </div>
                 ) : subredditError ? (
                   <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm">
@@ -379,52 +366,109 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : subreddits.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {subreddits.map(sub => (
-                      <div key={sub.display_name} className="flex items-center p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
-                        <div 
-                          className="w-12 h-12 rounded-full mr-4 flex items-center justify-center relative"
-                          style={{ 
-                            backgroundColor: sub.primary_color || '#FF4500',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          {sub.icon_img ? (
-                            <img 
-                              src={decodeHtmlEntities(sub.icon_img)} 
-                              alt={sub.display_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-white text-lg font-bold">
-                              {sub.display_name.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                          
-                          {/* Visit count badge */}
-                          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
-                            {sub.visit_count}
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {subreddits.slice(0, 12).map(sub => (
+                        <div key={sub.display_name} className="flex items-center p-3 bg-gradient-to-r from-white to-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-all hover:border-purple-200">
+                          <div 
+                            className="w-10 h-10 rounded-full mr-3 flex items-center justify-center"
+                            style={{ 
+                              backgroundColor: sub.primary_color || '#FF4500',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {sub.icon_img ? (
+                              <img 
+                                src={decodeHtmlEntities(sub.icon_img)} 
+                                alt={sub.display_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-white text-sm font-bold">
+                                {sub.display_name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 overflow-hidden">
+                            <p className="font-medium text-gray-800 truncate">r/{sub.display_name}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {sub.subscribers?.toLocaleString() || '0'} members
+                            </p>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <p className="font-medium text-gray-800">r/{sub.display_name}</p>
-                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">
-                              {sub.visit_count} visits
-                            </span>
+                      ))}
+                      
+                      {subreddits.length > 12 && (
+                        <div className="col-span-full mt-2">
+                          <div className="flex justify-center">
+                            <button 
+                              onClick={() => {
+                                const subredditModal = document.getElementById('subredditModal');
+                                if (subredditModal) subredditModal.classList.remove('hidden');
+                              }}
+                              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-colors"
+                            >
+                              View All {subreddits.length} Subreddits
+                            </button>
                           </div>
-                          <p className="text-sm text-gray-500">
-                            {sub.subscribers?.toLocaleString() || '0'} members
-                          </p>
-                          {sub.public_description && (
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-1">
-                              {sub.public_description}
-                            </p>
-                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Modal for all subreddits */}
+                    <div id="subredditModal" className="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                      <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+                          <h3 className="text-xl font-bold text-gray-800">All Your Subreddits</h3>
+                          <button 
+                            onClick={() => {
+                              const subredditModal = document.getElementById('subredditModal');
+                              if (subredditModal) subredditModal.classList.add('hidden');
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        <div className="p-5 overflow-y-auto">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {subreddits.map(sub => (
+                              <div key={`modal-${sub.display_name}`} className="flex items-center p-3 bg-white rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                                <div 
+                                  className="w-8 h-8 rounded-full mr-3 flex items-center justify-center"
+                                  style={{ 
+                                    backgroundColor: sub.primary_color || '#FF4500',
+                                    overflow: 'hidden'
+                                  }}
+                                >
+                                  {sub.icon_img ? (
+                                    <img 
+                                      src={decodeHtmlEntities(sub.icon_img)} 
+                                      alt={sub.display_name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-white text-xs font-bold">
+                                      {sub.display_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                  <p className="font-medium text-gray-800 truncate">r/{sub.display_name}</p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    {sub.subscribers?.toLocaleString() || '0'}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-gray-200 text-gray-400">
@@ -432,22 +476,10 @@ export default function ProfilePage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </div>
-                    <p className="text-gray-600 font-medium">No browsing history available</p>
+                    <p className="text-gray-600 font-medium">No subreddit data available</p>
                     <p className="text-gray-500 text-sm mt-1">
-                      Your Reddit permissions might be limiting access to history data.
+                      Try refreshing or check your Reddit permissions.
                     </p>
-                    <div className="mt-4">
-                      <a 
-                        href="/" 
-                        onClick={(e) => { 
-                          e.preventDefault(); 
-                          signOut({ callbackUrl: "/" });
-                        }}
-                        className="text-purple-600 hover:text-purple-800 text-sm font-medium"
-                      >
-                        Sign out and try again with different permissions
-                      </a>
-                    </div>
                   </div>
                 )}
               </div>
