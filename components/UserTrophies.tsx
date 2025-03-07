@@ -1,6 +1,8 @@
-// components/UserTrophies.tsx
+
 import React, { useState } from 'react';
-import Image from 'next/image'; // Import Next.js Image component
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 // Helper function to decode HTML entities in URLs
 const decodeHtmlEntities = (html: string | undefined) => {
@@ -15,7 +17,7 @@ interface TrophyData {
   icon_40?: string;
   name: string;
   description?: string;
-  detailed_description?: string; // Added field for detailed descriptions
+  detailed_description?: string;
   award_id?: string;
   url?: string;
   granted_at?: number;
@@ -54,14 +56,14 @@ export default function UserTrophies({
   
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">Trophy Case</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Trophy Case</h2>
         </div>
         <div className="p-6">
           <div className="text-center py-8">
             <div className="h-8 w-8 rounded-full border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent animate-spin mb-3 mx-auto"></div>
-            <p className="text-gray-500">Loading your trophy case...</p>
+            <p className="text-gray-500 dark:text-gray-400">Loading your trophy case...</p>
           </div>
         </div>
       </div>
@@ -98,42 +100,52 @@ export default function UserTrophies({
     switch (rarity) {
       case 'Common':
         return {
-          bg: 'from-gray-50 to-gray-100',
-          text: 'text-gray-600',
-          badge: 'bg-gray-100 text-gray-700'
+          bg: 'bg-gray-50 dark:bg-gray-700/40',
+          text: 'text-gray-600 dark:text-gray-400',
+          badge: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+          border: 'border-gray-200 dark:border-gray-600'
         };
       case 'Uncommon':
         return {
-          bg: 'from-blue-50 to-blue-100',
-          text: 'text-blue-600',
-          badge: 'bg-blue-100 text-blue-700'
+          bg: 'bg-blue-50 dark:bg-blue-900/20',
+          text: 'text-blue-600 dark:text-blue-400',
+          badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+          border: 'border-blue-200 dark:border-blue-800/50'
         };
       case 'Rare':
         return {
-          bg: 'from-purple-50 to-purple-100',
-          text: 'text-purple-600',
-          badge: 'bg-purple-100 text-purple-700'
+          bg: 'bg-purple-50 dark:bg-purple-900/20',
+          text: 'text-purple-600 dark:text-purple-400',
+          badge: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
+          border: 'border-purple-200 dark:border-purple-800/50'
         };
       case 'Very Rare':
         return {
-          bg: 'from-amber-50 to-amber-100',
-          text: 'text-amber-600',
-          badge: 'bg-amber-100 text-amber-700'
+          bg: 'bg-amber-50 dark:bg-amber-900/20',
+          text: 'text-amber-600 dark:text-amber-400',
+          badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+          border: 'border-amber-200 dark:border-amber-800/50'
         };
       default:
         return {
-          bg: 'from-gray-50 to-gray-100',
-          text: 'text-gray-600',
-          badge: 'bg-gray-100 text-gray-700'
+          bg: 'bg-gray-50 dark:bg-gray-700/40',
+          text: 'text-gray-600 dark:text-gray-400',
+          badge: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+          border: 'border-gray-200 dark:border-gray-600'
         };
     }
   };
   
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-      <div className="px-6 py-5 border-b border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-800">Trophy Case</h2>
-        <p className="text-xs text-gray-500">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+      <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          Trophy Case
+        </h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           {trophies.length > 0 
             ? `${username}'s collection of ${trophies.length} Reddit achievements` 
             : `${username}'s Reddit achievements`
@@ -143,9 +155,9 @@ export default function UserTrophies({
       
       <div className="p-6">
         {error && (
-          <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm mb-4">
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm mb-4 border border-red-100 dark:border-red-800/50">
             <div className="flex items-center">
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 mr-3">
+              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-800/30 text-red-500 dark:text-red-400 mr-3">
                 ⚠️
               </div>
               <div>{error}</div>
@@ -162,7 +174,7 @@ export default function UserTrophies({
               return (
                 <div 
                   key={`${trophy.data.name}-${index}`} 
-                  className={`flex flex-col items-center bg-gradient-to-b ${rarityClasses.bg} p-4 rounded-lg text-center hover:shadow-md transition-shadow group cursor-pointer`}
+                  className={`flex flex-col items-center ${rarityClasses.bg} p-4 rounded-lg text-center hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/10 transition-shadow group cursor-pointer border ${rarityClasses.border}`}
                   onClick={() => setSelectedTrophy(trophy.data)}
                 >
                   <div className="relative h-16 w-16 mb-3">
@@ -175,13 +187,13 @@ export default function UserTrophies({
                         className="w-full h-full object-contain group-hover:scale-110 transition-transform"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-amber-200 rounded-full text-amber-800 text-xl font-bold">
+                      <div className="w-full h-full flex items-center justify-center bg-amber-200 dark:bg-amber-700 rounded-full text-amber-800 dark:text-amber-200 text-xl font-bold">
                         🏆
                       </div>
                     )}
                   </div>
                   
-                  <h3 className="font-medium text-gray-800 text-sm mb-1">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-200 text-sm mb-1">
                     {trophy.data.name}
                   </h3>
                   
@@ -190,13 +202,13 @@ export default function UserTrophies({
                   </div>
                   
                   {trophy.data.description && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {trophy.data.description}
                     </p>
                   )}
                   
                   {trophy.data.granted_at && (
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                       {formatDate(trophy.data.granted_at)}
                     </p>
                   )}
@@ -205,14 +217,14 @@ export default function UserTrophies({
             })}
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
-            <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-amber-200 text-amber-600">
+          <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <p className="text-gray-600 font-medium">No trophies yet</p>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-700 dark:text-gray-300 font-medium">No trophies yet</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
               Keep participating in Reddit to earn achievements!
             </p>
           </div>
@@ -220,18 +232,18 @@ export default function UserTrophies({
         
         {/* Trophy detail modal */}
         {selectedTrophy && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold text-gray-800">{selectedTrophy.name}</h3>
-                <button 
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">{selectedTrophy.name}</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSelectedTrophy(null)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
               
               <div className="flex flex-col items-center mb-6">
@@ -245,7 +257,7 @@ export default function UserTrophies({
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-amber-200 rounded-full text-amber-800 text-3xl font-bold">
+                    <div className="w-full h-full flex items-center justify-center bg-amber-200 dark:bg-amber-700 rounded-full text-amber-800 dark:text-amber-200 text-3xl font-bold">
                       🏆
                     </div>
                   )}
@@ -259,35 +271,33 @@ export default function UserTrophies({
               <div className="space-y-4">
                 {selectedTrophy.description && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Description</h4>
-                    <p className="text-gray-600 text-sm">{selectedTrophy.description}</p>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</h4>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{selectedTrophy.description}</p>
                   </div>
                 )}
                 
                 {selectedTrophy.detailed_description && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Detailed Information</h4>
-                    <p className="text-gray-600 text-sm">{selectedTrophy.detailed_description}</p>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Detailed Information</h4>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{selectedTrophy.detailed_description}</p>
                   </div>
                 )}
                 
                 {selectedTrophy.granted_at && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Awarded On</h4>
-                    <p className="text-gray-600 text-sm">{formatDate(selectedTrophy.granted_at)}</p>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Awarded On</h4>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{formatDate(selectedTrophy.granted_at)}</p>
                   </div>
                 )}
                 
                 {selectedTrophy.url && (
                   <div className="pt-4">
-                    <a 
-                      href={selectedTrophy.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                    <Button
+                      onClick={() => window.open(selectedTrophy.url, '_blank')}
+                      className="bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700"
                     >
                       View on Reddit
-                    </a>
+                    </Button>
                   </div>
                 )}
               </div>
