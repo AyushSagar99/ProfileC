@@ -198,20 +198,23 @@ export default function ProfilePage() {
     if (!redditData) return;
     
     setLoadingTrophies(true);
+    setTrophyError(null); // Reset error state
     
     // Use the trophies API endpoint
     fetch('/api/reddit/trophies')
       .then(response => {
-        return response.json().catch(() => {
-          return { error: 'Failed to parse response' };
-        });
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        return response.json();
       })
       .then(data => {
         if (data.error) {
           console.warn("Trophies API returned an error:", data.error);
+          setTrophyError(data.error);
           setTrophies([]);
-          setTrophyError(null);
         } else {
+          console.log("Trophies loaded:", data.trophies?.length || 0);
           setTrophies(data.trophies || []);
           setTrophyError(null);
         }
@@ -219,8 +222,8 @@ export default function ProfilePage() {
       })
       .catch(err => {
         console.error("Error fetching trophies:", err);
+        setTrophyError(err.message || "Failed to fetch trophies");
         setTrophies([]);
-        setTrophyError(null);
         setLoadingTrophies(false);
       });
   }, [redditData]);

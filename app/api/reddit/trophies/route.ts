@@ -1,24 +1,8 @@
 // File: app/api/reddit/trophies/route.ts
-// Simplified API route that only fetches user's Reddit trophies
+// Updated to use the /api/v1/me/trophies endpoint directly
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-
-// Define interfaces for trophy data
-interface RedditTrophyData {
-  name?: string;
-  description?: string;
-  detailed_description?: string;
-  icon_40?: string;
-  icon_70?: string;
-  url?: string;
-  award_id?: string;
-}
-
-interface RedditTrophy {
-  kind?: string;
-  data: RedditTrophyData;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,36 +22,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // First, get the user's Reddit username
-    const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+    // Use the /api/v1/me/trophies endpoint to get the user's trophies directly
+    console.log("Fetching user trophies with /api/v1/me/trophies endpoint");
+    const trophiesResponse = await fetch('https://oauth.reddit.com/api/v1/me/trophies', {
       headers: {
         'Authorization': `Bearer ${token.accessToken}`,
-        'User-Agent': 'web:RedditProfileApp:v1.0.0'
-      }
-    });
-
-    if (!userResponse.ok) {
-      console.error("Failed to fetch user info:", userResponse.status);
-      return NextResponse.json(
-        { error: 'Failed to fetch user info' },
-        { status: userResponse.status }
-      );
-    }
-
-    const userData = await userResponse.json();
-    const username = userData.name;
-    
-    if (!username) {
-      return NextResponse.json(
-        { error: 'Could not determine username' },
-        { status: 500 }
-      );
-    }
-
-    // Use the public API endpoint (doesn't require special scopes)
-    console.log(`Fetching trophies for user: ${username} using public API`);
-    const trophiesResponse = await fetch(`https://www.reddit.com/user/${username}/trophies.json`, {
-      headers: {
         'User-Agent': 'web:RedditProfileApp:v1.0.0'
       }
     });
@@ -81,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     const trophiesData = await trophiesResponse.json();
-    console.log("Successfully fetched user trophies from public API");
+    console.log("Successfully fetched user trophies");
     
     // Add static descriptions for common trophies
     if (trophiesData.data?.trophies) {
@@ -114,12 +73,26 @@ export async function GET(req: NextRequest) {
         'beta team': 'User participated in Reddit beta testing'
       };
       
-      trophiesData.data.trophies.forEach((trophy: RedditTrophy) => {
+      trophiesData.data.trophies.forEach((trophy: { data: { name?: string; detailed_description?: string } }) => {
         const trophyName = trophy.data?.name?.toLowerCase();
         if (trophyName && trophyDescriptions[trophyName]) {
           trophy.data.detailed_description = trophyDescriptions[trophyName];
         }
       });
+    }
+    
+    // Get the user data too
+    const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${token.accessToken}`,
+        'User-Agent': 'web:RedditProfileApp:v1.0.0'
+      }
+    });
+    
+    let username = "user";
+    if (userResponse.ok) {
+      const userData = await userResponse.json();
+      username = userData.name || "user";
     }
     
     return NextResponse.json({ 
