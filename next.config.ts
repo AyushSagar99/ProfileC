@@ -25,6 +25,17 @@ const nextConfig = {
         pathname: '**',
       },
     ],
+    domains: [
+      // Reddit image domains
+      'b.thumbs.redditmedia.com',
+      'a.thumbs.redditmedia.com',
+      'styles.redditmedia.com',
+      'preview.redd.it',
+      'i.redd.it',
+      'www.redditstatic.com',
+      'thumbs.redditmedia.com',
+      'external-preview.redd.it'
+    ],
   },
 };
 

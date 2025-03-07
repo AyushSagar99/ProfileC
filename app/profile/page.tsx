@@ -8,6 +8,8 @@ import Image from "next/image";
 import TrendingSubreddits from "@/components/TrendingSubreddits";
 import UserTrophies from "@/components/UserTrophies";
 
+/* eslint-disable @next/next/no-img-element */
+
 
 // Define the Reddit user data type
 interface RedditUserData {
@@ -42,6 +44,29 @@ interface SubredditData {
   recommended_because?: string;
 }
 
+// Define the trophy data type
+interface TrophyData {
+  icon_70: string;
+  icon_40?: string;
+  name: string;
+  description?: string;
+  detailed_description?: string;
+  award_id?: string;
+  url?: string;
+  granted_at?: number;
+}
+
+interface Trophy {
+  kind: string;
+  data: TrophyData;
+}
+
+// Define error state type
+// interface ErrorState {
+//   message: string;
+//   code?: number;
+// }
+
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -50,7 +75,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   
   // State for subscribed subreddits
-  const [subreddits, setSubreddits] = useState<any[]>([]);
+  const [subreddits, setSubreddits] = useState<SubredditData[]>([]);
   const [loadingSubreddits, setLoadingSubreddits] = useState(false);
   const [subredditError, setSubredditError] = useState("");
   
@@ -60,7 +85,7 @@ export default function ProfilePage() {
   const [loadingTrending, setLoadingTrending] = useState(false);
   const [trendingError, setTrendingError] = useState<string | null>(null);
   
-  const [trophies, setTrophies] = useState<any[]>([]);
+  const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [loadingTrophies, setLoadingTrophies] = useState(false);
   const [trophyError, setTrophyError] = useState<string | null>(null);
   // Helper function to decode HTML entities in URLs
@@ -124,8 +149,8 @@ export default function ProfilePage() {
       .then(data => {
         if (data.data && data.data.children) {
           const subredditList = data.data.children
-            .map((child: any) => child.data)
-            .sort((a: any, b: any) => b.subscribers - a.subscribers); // Sort by popularity
+          .map((child: { data: SubredditData }) => child.data)
+          .sort((a: SubredditData, b: SubredditData) => (b.subscribers || 0) - (a.subscribers || 0)); // Sort by popularity
           
           setSubreddits(subredditList);
         }
@@ -158,6 +183,7 @@ export default function ProfilePage() {
         if (data.error) {
           console.warn("Trending API returned an error:", data.error);
           // Don't set error state - just use empty arrays
+          setTrendingError(data.error);
           setTrendingSubreddits([]);
           setRecommendedSubreddits([]);
         } else {
@@ -559,17 +585,17 @@ useEffect(() => {
                                     overflow: 'hidden'
                                   }}
                                 >
-                                  {sub.icon_img ? (
-                                    <img 
-                                      src={decodeHtmlEntities(sub.icon_img)}
-                                      alt={sub.display_name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <span className="text-white text-xs font-bold">
-                                      {sub.display_name.charAt(0).toUpperCase()}
-                                    </span>
-                                  )}
+                                {sub.icon_img ? (
+                                  <img 
+                                    src={decodeHtmlEntities(sub.icon_img)}
+                                    alt={sub.display_name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-white text-xs font-bold">
+                                    {sub.display_name.charAt(0).toUpperCase()}
+                                  </span>
+                                )}
                                 </div>
                                 <div className="flex-1 overflow-hidden">
                                   <p className="font-medium text-gray-800 truncate">r/{sub.display_name}</p>

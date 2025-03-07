@@ -1,5 +1,6 @@
 // components/UserTrophies.tsx
 import React, { useState } from 'react';
+import Image from 'next/image'; // Import Next.js Image component
 
 // Helper function to decode HTML entities in URLs
 const decodeHtmlEntities = (html: string | undefined) => {
@@ -11,7 +12,7 @@ const decodeHtmlEntities = (html: string | undefined) => {
 
 interface TrophyData {
   icon_70: string;
-  icon_40: string;
+  icon_40?: string;
   name: string;
   description?: string;
   detailed_description?: string; // Added field for detailed descriptions
@@ -166,9 +167,11 @@ export default function UserTrophies({
                 >
                   <div className="relative h-16 w-16 mb-3">
                     {trophy.data.icon_70 ? (
-                      <img 
+                      <Image 
                         src={decodeHtmlEntities(trophy.data.icon_70)}
                         alt={trophy.data.name}
+                        width={70}
+                        height={70}
                         className="w-full h-full object-contain group-hover:scale-110 transition-transform"
                       />
                     ) : (
@@ -234,9 +237,11 @@ export default function UserTrophies({
               <div className="flex flex-col items-center mb-6">
                 <div className="h-24 w-24 mb-4">
                   {selectedTrophy.icon_70 ? (
-                    <img 
+                    <Image 
                       src={decodeHtmlEntities(selectedTrophy.icon_70)}
                       alt={selectedTrophy.name}
+                      width={70}
+                      height={70}
                       className="w-full h-full object-contain"
                     />
                   ) : (

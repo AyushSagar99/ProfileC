@@ -1,6 +1,7 @@
 // Update the TrendingSubreddits component to handle empty data gracefully:
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image'; // Import Next.js Image component
 
 // Helper function to decode HTML entities in URLs
 const decodeHtmlEntities = (html: string | undefined) => {
@@ -110,6 +111,9 @@ export default function TrendingSubreddits({
     return null;
   }
 
+  // Use the error prop to display an error message if needed
+  const hasError = error !== null && error !== '';
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
       <div className="px-6 py-5 border-b border-gray-100">
@@ -120,6 +124,14 @@ export default function TrendingSubreddits({
       </div>
       
       <div className="p-6">
+        {/* Error message if there is an error */}
+        {hasError && (
+          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-100">
+            <p className="text-sm">{error}</p>
+            <p className="text-xs mt-1">Showing suggested communities instead.</p>
+          </div>
+        )}
+        
         {/* Trending Section */}
         {displayTrending.length > 0 && (
           <div className="mb-8">
@@ -145,9 +157,11 @@ export default function TrendingSubreddits({
                     }}
                   >
                     {sub.icon_img ? (
-                      <img 
+                      <Image 
                         src={decodeHtmlEntities(sub.icon_img)}
                         alt={sub.display_name}
+                        width={40}
+                        height={40}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -206,9 +220,11 @@ export default function TrendingSubreddits({
                     }}
                   >
                     {sub.icon_img ? (
-                      <img 
+                      <Image 
                         src={decodeHtmlEntities(sub.icon_img)}
                         alt={sub.display_name}
+                        width={40}
+                        height={40}
                         className="w-full h-full object-cover"
                       />
                     ) : (

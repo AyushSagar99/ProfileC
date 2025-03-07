@@ -4,6 +4,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+// Define interfaces for trophy data
+interface RedditTrophyData {
+  name?: string;
+  description?: string;
+  detailed_description?: string;
+  icon_40?: string;
+  icon_70?: string;
+  url?: string;
+  award_id?: string;
+}
+
+interface RedditTrophy {
+  kind?: string;
+  data: RedditTrophyData;
+}
+
 export async function GET(req: NextRequest) {
   try {
     console.log("Reddit trophies API route called");
@@ -98,7 +114,7 @@ export async function GET(req: NextRequest) {
         'beta team': 'User participated in Reddit beta testing'
       };
       
-      trophiesData.data.trophies.forEach((trophy: any) => {
+      trophiesData.data.trophies.forEach((trophy: RedditTrophy) => {
         const trophyName = trophy.data?.name?.toLowerCase();
         if (trophyName && trophyDescriptions[trophyName]) {
           trophy.data.detailed_description = trophyDescriptions[trophyName];

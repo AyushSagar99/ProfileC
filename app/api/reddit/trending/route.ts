@@ -4,6 +4,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+interface RedditSubredditData {
+  display_name: string;
+  subscribers?: number;
+  icon_img?: string;
+  community_icon?: string;
+  public_description?: string;
+  url?: string;
+  created_utc?: number;
+  growth_percentage?: number;
+  trending_rank?: number;
+  recommended_because?: string;
+}
+
 export async function GET(req: NextRequest) {
   try {
     console.log("Reddit trending subreddits API route called");
@@ -52,12 +65,15 @@ export async function GET(req: NextRequest) {
     });
 
     // Extract the names of subscribed subreddits (if available)
-    const subscribedNames = new Set();
+    const subscribedNames = new Set<string>();
+    
     
     if (subscribedResponse.ok) {
       const subscribedData = await subscribedResponse.json();
       if (subscribedData.data && subscribedData.data.children) {
-        subscribedData.data.children.forEach((item: any) => {
+        subscribedData.data.children.forEach((item: { data: RedditSubredditData }) => {
+
+
           if (item.data && item.data.display_name) {
             subscribedNames.add(item.data.display_name.toLowerCase());
           }
@@ -68,8 +84,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Filter and process data for trending subreddits
-    const trendingSubreddits = [];
-    const recommendedSubreddits = [];
+    const trendingSubreddits: RedditSubredditData[] = [];
+    const recommendedSubreddits: RedditSubredditData[] = [];
     
     if (popularData.data && popularData.data.children) {
       // First pass to get trending subreddits (not subscribed to)
