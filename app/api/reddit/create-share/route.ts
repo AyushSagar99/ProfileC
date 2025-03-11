@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const origin = baseUrl || 
                    request.headers.get('origin') || 
                    process.env.NEXTAUTH_URL || 
-                   'http://localhost:3000';
+                   'https://profile-v-tau.vercel.app';
     const shareUrl = `${origin}/shared/${shareToken}`;
 
     // Return response
