@@ -15,7 +15,11 @@ export async function POST(request: Request) {
 
     // Parse request body
     const body = await request.json();
-    const { expiryOption = '7days', isAnonymous = false } = body;
+    const { 
+      expiryOption = '7days', 
+      isAnonymous = false,
+      baseUrl 
+    } = body;
     
     // Map expiryOption to JWT expiry value
     let expiresIn: string;
@@ -30,9 +34,8 @@ export async function POST(request: Request) {
     // Use session data to create an identifier
     const userId = session.user.name || nanoid(10);
     
-    /// Use optional chaining and nullish coalescing to handle potential null values
-// This converts null to undefined which is acceptable to the function parameter
-const username = session.user?.name ?? undefined;
+    // Use optional chaining and nullish coalescing to handle potential null values
+    const username = session.user?.name ?? undefined;
 
     // Create share token
     const shareToken = createShareToken(
@@ -42,8 +45,11 @@ const username = session.user?.name ?? undefined;
       expiresIn
     );
 
-    // Generate share URL
-    const origin = request.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Determine share URL
+    const origin = baseUrl || 
+                   request.headers.get('origin') || 
+                   process.env.NEXTAUTH_URL || 
+                   'http://localhost:3000';
     const shareUrl = `${origin}/shared/${shareToken}`;
 
     // Return response
