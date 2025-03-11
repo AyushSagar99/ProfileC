@@ -10,6 +10,7 @@ import UserTrophies from "@/components/UserTrophies";
 import { ModeToggle } from "@/components/toggle-theme";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import ShareProfileCard from "@/components/ShareProfileCard";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -303,12 +304,17 @@ export default function ProfilePage() {
       </div>
       
       <div className="container mx-auto px-4 py-8">
-        <UserTrophies 
-          trophies={trophies}
-          isLoading={loadingTrophies}
-          error={trophyError}
-          username={redditData?.name || ''}
-        />
+  <div className="grid md:grid-cols-[1fr_auto] gap-6 items-start">
+    <UserTrophies 
+      trophies={trophies}
+      isLoading={loadingTrophies}
+      error={trophyError}
+      username={redditData?.name || ''}
+    />
+    <div className="w-full md:w-auto">
+      <ShareProfileCard />
+    </div>
+  </div>
         
         {error ? (
           <div className="p-5 bg-red-100 dark:bg-red-500/10 border-l-4 border-red-500 rounded-lg mb-6">
@@ -382,6 +388,7 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
+                    
                   ) : (
                     <div className="text-center py-8 text-gray-500">Profile data unavailable</div>
                   )}

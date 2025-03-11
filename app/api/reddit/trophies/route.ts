@@ -1,5 +1,3 @@
-// File: app/api/reddit/trophies/route.ts
-// Updated to use the /api/v1/me/trophies endpoint directly
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
