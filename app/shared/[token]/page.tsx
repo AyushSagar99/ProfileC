@@ -41,36 +41,56 @@ export default function SharedProfilePage() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
+        console.log("Starting to fetch profile with token:", token ? `${token.substring(0, 10)}...` : 'none');
+        
         const response = await axios.get(`/api/reddit/verify-token?token=${token}`);
+        console.log("Token verification response:", response.data);
         
         if (!response.data.isValid) {
+          console.error("Token verification failed:", response.data.error);
           setError('This share link is invalid or has expired');
           setLoading(false);
           return;
         }
         
-        // Remove the tokenData state update since we're not using it
-        // const tokenDataFromResponse = response.data.tokenData;
-        // setTokenData(tokenDataFromResponse);
+        console.log("Token is valid, token data:", response.data.tokenData);
         
         // Fetch profile data based on anonymity setting
         let profileResponse;
         
         if (response.data.tokenData.isAnonymous) {
           // Pass the token in headers for anonymous profiles
-          profileResponse = await axios.get(
-            `/api/reddit/anonymous-profile/${response.data.tokenData.userId}`,
-            {
-              headers: {
-                'x-share-token': token
+          console.log("Fetching anonymous profile for userId:", response.data.tokenData.userId);
+          
+          try {
+            profileResponse = await axios.get(
+              `/api/reddit/anonymous-profile/${response.data.tokenData.userId}`,
+              {
+                headers: {
+                  'x-share-token': token
+                }
               }
-            }
-          );
+            );
+            console.log("Anonymous profile response:", profileResponse.status, profileResponse.data);
+          } catch (anonError) {
+            console.error("Anonymous profile fetch error:", anonError);
+            throw anonError;
+          }
         } else {
-          profileResponse = await axios.get(
-            `/api/reddit/user-profile/${response.data.tokenData.username}`
-          );
+          console.log("Fetching public profile for username:", response.data.tokenData.username);
+          
+          try {
+            profileResponse = await axios.get(
+              `/api/reddit/user-profile/${response.data.tokenData.username}`
+            );
+            console.log("Public profile response:", profileResponse.status, profileResponse.data);
+          } catch (publicError) {
+            console.error("Public profile fetch error:", publicError);
+            throw publicError;
+          }
         }
+        
+        console.log("Setting profile with data:", profileResponse.data);
         
         setProfile({
           ...profileResponse.data,
@@ -78,9 +98,18 @@ export default function SharedProfilePage() {
         });
         
         setLoading(false);
-      } catch (err) {
-        console.error('Error loading shared profile:', err);
-        setError('Unable to load profile data');
+      } catch (err: any) {
+        // Add more detailed error logging
+        const errorDetails = err.response?.data?.error || err.message || 'Unknown error';
+        const statusCode = err.response?.status;
+        
+        console.error('Error loading shared profile:', {
+          message: errorDetails,
+          status: statusCode,
+          fullError: err.toString()
+        });
+        
+        setError(`Unable to load profile data: ${errorDetails}${statusCode ? ` (${statusCode})` : ''}`);
         setLoading(false);
       }
     };
