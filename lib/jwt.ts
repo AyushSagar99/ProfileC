@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 
 // Use a safer typing approach
 const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-change-this';
+console.log("JWT_SECRET available:", !!JWT_SECRET, "Length:", JWT_SECRET?.length || 0);
 
 export interface SharePayload {
   userId: string;
@@ -37,11 +38,18 @@ export function createShareToken(
   );
 }
 
+// lib/jwt.ts
 export function verifyShareToken(token: string): SharePayload | null {
   try {
+    // Add environment check
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Verifying in production with secret length:', JWT_SECRET?.length || 0);
+    }
+    
     return jwt.verify(token, JWT_SECRET) as SharePayload;
   } catch (error) {
-    console.error('Invalid share token:', error);
+    console.error('Invalid share token:', error, 
+      process.env.NODE_ENV === 'production' ? 'In production' : 'In development');
     return null;
   }
 }
