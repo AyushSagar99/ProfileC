@@ -92,10 +92,15 @@ export default function SharedProfilePage() {
         
         console.log("Setting profile with data:", profileResponse.data);
         
-        setProfile({
-          ...profileResponse.data,
-          isAnonymous: response.data.tokenData.isAnonymous
-        });
+        // In your shared profile page, update the setProfile call
+if (profileResponse.data.error) {
+  console.warn("API returned data with error:", profileResponse.data.error);
+}
+
+setProfile({
+  ...profileResponse.data,
+  isAnonymous: response.data.tokenData.isAnonymous
+});
         
         setLoading(false);
       } catch (err: unknown) {

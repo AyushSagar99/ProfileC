@@ -15,15 +15,37 @@ export async function GET(request: NextRequest) {
     // Fetch user's basic info with User-Agent header
     console.log("Fetching Reddit data for:", username);
     
+    // Use a better User-Agent header - Reddit is strict about this
+    const userAgent = 'Mozilla/5.0 (compatible; RedditDashboard/1.0; +https://your-site.com)';
+    
     try {
       const userResponse = await fetch(`https://www.reddit.com/user/${username}/about.json`, {
         headers: {
-          'User-Agent': 'web:reddit-dashboard:v1.0 (by /u/your-username)'
+          'User-Agent': userAgent
         }
       });
       
       if (!userResponse.ok) {
         const status = userResponse.status;
+        
+        if (status === 403) {
+          console.error("Reddit API 403 Forbidden - possibly rate limited or bad User-Agent");
+          
+          // Return a more user-friendly error with fallback data
+          return NextResponse.json({
+            username: username,
+            avatarUrl: '',
+            karma: {
+              post: 0,
+              comment: 0,
+              total: 0,
+            },
+            accountAge: 'Unknown',
+            trophies: ['Data currently unavailable'],
+            error: 'Reddit API access limited. Using placeholder data.'
+          });
+        }
+        
         console.error(`Reddit API error (${status})`);
         return NextResponse.json({ error: `Reddit API error: ${status}` }, { status });
       }
@@ -33,7 +55,7 @@ export async function GET(request: NextRequest) {
       // Fetch user's trophies
       const trophyResponse = await fetch(`https://www.reddit.com/user/${username}/trophies.json`, {
         headers: {
-          'User-Agent': 'web:reddit-dashboard:v1.0 (by /u/your-username)'
+          'User-Agent': userAgent // Use the same user agent for consistency
         }
       });
       
