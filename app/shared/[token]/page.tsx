@@ -81,8 +81,8 @@ export default function SharedProfilePage() {
           
           try {
             profileResponse = await axios.get(
-              `/api/reddit/user-profile/${response.data.tokenData.username}`
-            );
+              `/api/reddit/profile?username=${response.data.tokenData.username}`
+            );            
             console.log("Public profile response:", profileResponse.status, profileResponse.data);
           } catch (publicError) {
             console.error("Public profile fetch error:", publicError);
