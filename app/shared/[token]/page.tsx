@@ -98,15 +98,23 @@ export default function SharedProfilePage() {
         });
         
         setLoading(false);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        // Use a proper type for the error
+        const error = err as Error & { 
+          response?: { 
+            data?: { error?: string },
+            status?: number
+          } 
+        };
+        
         // Add more detailed error logging
-        const errorDetails = err.response?.data?.error || err.message || 'Unknown error';
-        const statusCode = err.response?.status;
+        const errorDetails = error.response?.data?.error || error.message || 'Unknown error';
+        const statusCode = error.response?.status;
         
         console.error('Error loading shared profile:', {
           message: errorDetails,
           status: statusCode,
-          fullError: err.toString()
+          fullError: String(error)
         });
         
         setError(`Unable to load profile data: ${errorDetails}${statusCode ? ` (${statusCode})` : ''}`);
