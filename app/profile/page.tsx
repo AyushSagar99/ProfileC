@@ -11,6 +11,12 @@ import { ModeToggle } from "@/components/toggle-theme";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import ShareProfileCard from "@/components/ShareProfileCard";
+import DashboardSnapshot from "@/components/DashboardSnapshot";
+import RecentActivityCard from "@/components/RecentActivityCard";
+import ModeratedSubredditsCard, {
+  type ModeratedSubreddit,
+} from "@/components/ModeratedSubredditsCard";
+import RedditQuickLinks from "@/components/RedditQuickLinks";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -85,6 +91,8 @@ export default function ProfilePage() {
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [loadingTrophies, setLoadingTrophies] = useState(false);
   const [trophyError, setTrophyError] = useState<string | null>(null);
+
+  const [moderatedSubs, setModeratedSubs] = useState<ModeratedSubreddit[]>([]);
   
   // Helper function to decode HTML entities in URLs
   const decodeHtmlEntities = (html: string | undefined) => {
@@ -228,7 +236,25 @@ export default function ProfilePage() {
         setLoadingTrophies(false);
       });
   }, [redditData]);
-  
+
+  useEffect(() => {
+    if (!redditData) return;
+
+    fetch("/api/reddit/moderated")
+      .then((response) => {
+        if (!response.ok) return { subreddits: [] };
+        return response.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data.subreddits)) {
+          setModeratedSubs(data.subreddits);
+        } else {
+          setModeratedSubs([]);
+        }
+      })
+      .catch(() => setModeratedSubs([]));
+  }, [redditData]);
+
   // Format Unix timestamp to readable date
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString('en-US', {
@@ -304,6 +330,17 @@ export default function ProfilePage() {
       </div>
       
       <div className="container mx-auto px-4 py-8">
+        {redditData && (
+          <DashboardSnapshot
+            className="mb-8"
+            linkKarma={redditData.link_karma}
+            commentKarma={redditData.comment_karma}
+            subscribedCount={subreddits.length}
+            trophyCount={trophies.length}
+            moderatedCount={moderatedSubs.length}
+            accountCreatedUtc={redditData.created_utc}
+          />
+        )}
   <div className="grid md:grid-cols-[1fr_auto] gap-6 items-start">
     <UserTrophies 
       trophies={trophies}
@@ -503,6 +540,25 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 lg:items-stretch">
+              <div className="min-h-0 flex h-full flex-col">
+                <RecentActivityCard className="flex-1" />
+              </div>
+              <div className="min-h-0 flex h-full flex-col">
+                {redditData ? (
+                  <RedditQuickLinks username={redditData.name} className="flex-1" />
+                ) : (
+                  <div className="flex flex-1 min-h-[200px] items-center justify-center rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/30 text-sm text-gray-500 dark:text-gray-400">
+                    Sign in data loading…
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {redditData && (
+              <ModeratedSubredditsCard subs={moderatedSubs} className="mb-8" />
+            )}
 
             {/* Trending Subreddits Section */}
             <TrendingSubreddits 
