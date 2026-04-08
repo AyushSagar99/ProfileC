@@ -10,8 +10,8 @@ const handler = NextAuth({
       clientSecret: process.env.REDDIT_CLIENT_SECRET ,
       authorization: {
         params: {
-          // Request identity, mysubreddits and history scopes
-          scope: "identity mysubreddits history"
+          // read: required for oauth.reddit.com listing endpoints (e.g. /subreddits/popular)
+          scope: "identity read mysubreddits history"
         }
       }
     }),
